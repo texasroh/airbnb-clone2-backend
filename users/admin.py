@@ -8,7 +8,19 @@ class CustomUserAdmin(UserAdmin):
     fieldsets = (
         (
             "Profile",
-            {"fields": ("username", "password", "name", "email", "is_host")},
+            {
+                "fields": (
+                    "avartar",
+                    "username",
+                    "password",
+                    "name",
+                    "email",
+                    "is_host",
+                    "gender",
+                    "language",
+                    "currency",
+                )
+            },
         ),
         (
             "Permissions",
