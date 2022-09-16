@@ -48,6 +48,7 @@ CUSTOM_APPS = [
     "wishlists.apps.WishlistsConfig",
     "bookings.apps.BookingsConfig",
     "medias.apps.MediasConfig",
+    "direct_messages.apps.DirectMessagesConfig",
 ]
 
 INSTALLED_APPS = DJANGO_APPS + CUSTOM_APPS
