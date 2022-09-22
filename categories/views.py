@@ -10,9 +10,14 @@ def categories(request):
         all_categories = models.Category.objects.all()
         serializer = CategorySerializer(all_categories, many=True)
         return Response(serializer.data)
+
     elif request.method == "POST":
-        print(request.data)
-        return Response({"created": True})
+        serializer = CategorySerializer(data=request.data)
+        if serializer.is_valid():
+            new_category = serializer.save()
+            return Response(CategorySerializer(new_category).data)
+
+        return Response(serializer.errors)
 
 
 @api_view()
