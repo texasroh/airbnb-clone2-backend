@@ -19,7 +19,7 @@ urlpatterns = [
             {
                 "get": "retrieve",
                 "put": "partial_update",
-                "delete": "destry",
+                "delete": "destroy",
             }
         ),
     ),
