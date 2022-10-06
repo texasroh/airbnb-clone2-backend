@@ -1,7 +1,13 @@
+from django.db import transaction
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_204_NO_CONTENT
-from rest_framework.exceptions import NotFound, NotAuthenticated, ParseError
+from rest_framework.exceptions import (
+    NotFound,
+    NotAuthenticated,
+    ParseError,
+    PermissionDenied,
+)
 from .models import Amenity, Room
 from categories.models import Category
 from .serializer import AmenitySerializer, RoomListSerializer, RoomDetailSerializer
@@ -62,14 +68,24 @@ class Rooms(APIView):
         if serializer.is_valid():
             category_pk = request.data.get("category")
             if not category_pk:
-                raise ParseError
+                raise ParseError("Category is required.")
             try:
                 category = Category.objects.get(pk=category_pk)
                 if category.kind == Category.CategoryKindChoices.EXPERIENCES:
-                    raise ParseError
+                    raise ParseError("The category kind should be rooms")
             except Category.DoesNotExist:
-                raise ParseError
-            room = serializer.save(owner=request.user, category=category)
+                raise ParseError("Category not found")
+
+            try:
+                with transaction.atomic():
+                    room = serializer.save(owner=request.user, category=category)
+                    amenities = request.data.get("amenities")
+                    for amenity_pk in amenities:
+                        amenity = Amenity.objects.get(pk=amenity_pk)
+                        room.amenities.add(amenity)
+            except Exception as e:
+                print(e)
+                raise ParseError()
             return Response(RoomDetailSerializer(room).data)
         else:
             return Response(serializer.errors, status=HTTP_404_NOT_FOUND)
@@ -92,5 +108,9 @@ class RoomDetail(APIView):
 
     def delete(self, request, pk):
         room = self.get_object(pk)
+        if request.user.is_anonymous:
+            raise NotAuthenticated
+        elif request.user != room.owner:
+            raise PermissionDenied
         room.delete()
         return Response(status=HTTP_204_NO_CONTENT)
