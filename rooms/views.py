@@ -1,4 +1,5 @@
 from django.db import transaction
+from django.core.paginator import Paginator
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_204_NO_CONTENT
@@ -9,8 +10,9 @@ from rest_framework.exceptions import (
     PermissionDenied,
 )
 from .models import Amenity, Room
-from categories.models import Category
 from .serializer import AmenitySerializer, RoomListSerializer, RoomDetailSerializer
+from categories.models import Category
+from reviews.serializers import ReviewSerializer
 
 
 class Amenities(APIView):
@@ -145,3 +147,25 @@ class RoomDetail(APIView):
             raise PermissionDenied
         room.delete()
         return Response(status=HTTP_204_NO_CONTENT)
+
+
+class RoomReviews(APIView):
+    def get_object(self, pk):
+        try:
+            return Room.objects.get(pk=pk)
+        except Room.DoesNotExist:
+            raise NotFound
+
+    def get(self, request, pk):
+        try:
+            page = request.query_params.get("page", 1)
+            page = int(page)
+        except ValueError:
+            page = 1
+
+        page_size = 3
+
+        room = self.get_object(pk)
+        paginator = Paginator(room.reviews.all(), page_size, orphans=2)
+        serializer = ReviewSerializer(paginator.get_page(page), many=True)
+        return Response(serializer.data)
