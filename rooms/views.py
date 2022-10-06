@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.core.paginator import Paginator
+from django.conf import settings
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_204_NO_CONTENT
@@ -13,6 +14,7 @@ from .models import Amenity, Room
 from .serializer import AmenitySerializer, RoomListSerializer, RoomDetailSerializer
 from categories.models import Category
 from reviews.serializers import ReviewSerializer
+from medias.serializers import PhotoSerializer
 
 
 class Amenities(APIView):
@@ -163,9 +165,32 @@ class RoomReviews(APIView):
         except ValueError:
             page = 1
 
-        page_size = 3
+        page_size = settings.PAGE_SIZE
 
         room = self.get_object(pk)
         paginator = Paginator(room.reviews.all(), page_size, orphans=2)
         serializer = ReviewSerializer(paginator.get_page(page), many=True)
         return Response(serializer.data)
+
+
+class RoomPhotos(APIView):
+    def get_object(self, pk):
+        try:
+            return Room.objects.get(pk=pk)
+        except Room.DoesNotExist:
+            raise NotFound
+
+    def post(self, request, pk):
+        if request.user.is_anonymous:
+            raise NotAuthenticated
+        room = self.get_object(pk)
+        if request.user != room.owner:
+            raise PermissionDenied
+
+        serializer = PhotoSerializer(data=request.data)
+        if serializer.is_valid():
+            photo = serializer.save(room=room)
+            serializer = PhotoSerializer(photo)
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors, status=HTTP_404_NOT_FOUND)
