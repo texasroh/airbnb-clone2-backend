@@ -73,19 +73,17 @@ class Rooms(APIView):
                 category = Category.objects.get(pk=category_pk)
                 if category.kind == Category.CategoryKindChoices.EXPERIENCES:
                     raise ParseError("The category kind should be rooms")
-            except Category.DoesNotExist:
-                raise ParseError("Category not found")
-
-            try:
                 with transaction.atomic():
                     room = serializer.save(owner=request.user, category=category)
                     amenities = request.data.get("amenities")
                     for amenity_pk in amenities:
                         amenity = Amenity.objects.get(pk=amenity_pk)
                         room.amenities.add(amenity)
-            except Exception as e:
-                print(e)
-                raise ParseError()
+            except Category.DoesNotExist:
+                raise ParseError("Category not found")
+            except Amenity.DoesNotExist:
+                raise ParseError("Amenities not found")
+
             return Response(RoomDetailSerializer(room).data)
         else:
             return Response(serializer.errors, status=HTTP_404_NOT_FOUND)
@@ -104,7 +102,38 @@ class RoomDetail(APIView):
         return Response(serializer.data)
 
     def put(self, request, pk):
-        pass
+        room = self.get_object(pk)
+        if request.user.is_anonymous:
+            return NotAuthenticated
+        if request.user != room.owner:
+            return PermissionDenied
+
+        serializer = RoomDetailSerializer(room, data=request.data, partial=True)
+        if serializer.is_valid():
+            category_pk = request.data.get("category")
+            try:
+                with transaction.atomic():
+                    if category_pk:
+                        category = Category.objects.get(pk=category_pk)
+                        if category.kind == Category.CategoryKindChoices.EXPERIENCES:
+                            raise ParseError("The category kind should be rooms")
+                        room = serializer.save(category=category)
+                    else:
+                        room = serializer.save()
+                    amenities = request.data.get("amenities")
+                    if amenities:
+                        room.amenities.clear()
+                        for amenity_pk in amenities:
+                            amenity = Amenity.objects.get(pk=amenity_pk)
+                            room.amenities.add(amenity)
+            except Category.DoesNotExist:
+                raise ParseError("Category not found")
+            except Amenity.DoesNotExist:
+                raise ParseError("Amenities not found")
+
+            return Response(RoomDetailSerializer(room).data)
+        else:
+            return Response(serializer.erorrs, status=HTTP_404_NOT_FOUND)
 
     def delete(self, request, pk):
         room = self.get_object(pk)
