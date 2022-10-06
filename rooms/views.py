@@ -1,6 +1,7 @@
 from django.db import transaction
 from django.core.paginator import Paginator
 from django.conf import settings
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_204_NO_CONTENT
@@ -60,6 +61,8 @@ class AmenityDetail(APIView):
 
 
 class Rooms(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     def get(self, request):
         all_rooms = Room.objects.all()
         serializer = RoomListSerializer(
@@ -68,8 +71,8 @@ class Rooms(APIView):
         return Response(serializer.data)
 
     def post(self, request):
-        if request.user.is_anonymous:
-            raise NotAuthenticated
+        # if request.user.is_anonymous:
+        #     raise NotAuthenticated
         serializer = RoomDetailSerializer(data=request.data)
         if serializer.is_valid():
             category_pk = request.data.get("category")
@@ -96,6 +99,9 @@ class Rooms(APIView):
 
 
 class RoomDetail(APIView):
+
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     def get_object(self, pk):
         try:
             return Room.objects.get(pk=pk)
@@ -109,8 +115,8 @@ class RoomDetail(APIView):
 
     def put(self, request, pk):
         room = self.get_object(pk)
-        if request.user.is_anonymous:
-            return NotAuthenticated
+        # if request.user.is_anonymous:
+        #     return NotAuthenticated
         if request.user != room.owner:
             return PermissionDenied
 
@@ -143,9 +149,9 @@ class RoomDetail(APIView):
 
     def delete(self, request, pk):
         room = self.get_object(pk)
-        if request.user.is_anonymous:
-            raise NotAuthenticated
-        elif request.user != room.owner:
+        # if request.user.is_anonymous:
+        #     raise NotAuthenticated
+        if request.user != room.owner:
             raise PermissionDenied
         room.delete()
         return Response(status=HTTP_204_NO_CONTENT)
@@ -174,6 +180,8 @@ class RoomReviews(APIView):
 
 
 class RoomPhotos(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
     def get_object(self, pk):
         try:
             return Room.objects.get(pk=pk)
@@ -181,8 +189,8 @@ class RoomPhotos(APIView):
             raise NotFound
 
     def post(self, request, pk):
-        if request.user.is_anonymous:
-            raise NotAuthenticated
+        # if request.user.is_anonymous:
+        #     raise NotAuthenticated
         room = self.get_object(pk)
         if request.user != room.owner:
             raise PermissionDenied
