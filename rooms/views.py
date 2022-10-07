@@ -16,6 +16,7 @@ from .serializer import AmenitySerializer, RoomListSerializer, RoomDetailSeriali
 from categories.models import Category
 from reviews.serializers import ReviewSerializer
 from medias.serializers import PhotoSerializer
+from bookings.models import Booking
 
 
 class Amenities(APIView):
@@ -213,3 +214,20 @@ class RoomPhotos(APIView):
             return Response(serializer.data)
         else:
             return Response(serializer.errors, status=HTTP_404_NOT_FOUND)
+
+
+class RoomBookings(APIView):
+    permission_classes = [IsAuthenticatedOrReadOnly]
+
+    def get_object(self, pk):
+        try:
+            return Room.objects.get(pk=pk)
+        except Room.DoesNotExist:
+            raise NotFound
+
+    def get(self, request, pk):
+        booking = Booking.objects.filter(room=pk)
+        return Response()
+
+    def post(self, request):
+        pass
