@@ -10,7 +10,7 @@ class CustomUserAdmin(UserAdmin):
             "Profile",
             {
                 "fields": (
-                    "avartar",
+                    "avatar",
                     "username",
                     "password",
                     "name",
