@@ -28,5 +28,5 @@ urlpatterns = [
     path("api/v1/medias/", include("medias.urls")),
     path("api/v1/wishlists/", include("wishlists.urls")),
     path("api/v1/users/", include("users.urls")),
-    path("graphql", AsyncGraphQLView.as_view(schema=schema)),
+    path("graphql", GraphQLView.as_view(schema=schema)),
 ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
