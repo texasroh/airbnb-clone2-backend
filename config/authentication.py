@@ -5,6 +5,7 @@ from rest_framework.exceptions import AuthenticationFailed, NotFound
 from users.models import User
 
 
+# django-rest-know 도 있다.
 class TrustMeBroAuthentication(BaseAuthentication):
     def authenticate(self, request):
         username = request.headers.get("Trust-Me")
@@ -18,6 +19,7 @@ class TrustMeBroAuthentication(BaseAuthentication):
             raise AuthenticationFailed(f"No user {username}")
 
 
+# simple JWT 도 있다.
 class JWTAuthentication(BaseAuthentication):
     def authenticate(self, request):
         token = request.headers.get("Jwt")
