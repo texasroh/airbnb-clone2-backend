@@ -1,5 +1,7 @@
+import jwt
+from django.conf import settings
 from rest_framework.authentication import BaseAuthentication
-from rest_framework.exceptions import AuthenticationFailed
+from rest_framework.exceptions import AuthenticationFailed, NotFound
 from users.models import User
 
 
@@ -14,3 +16,19 @@ class TrustMeBroAuthentication(BaseAuthentication):
             return user, None
         except User.DoesNotExist:
             raise AuthenticationFailed(f"No user {username}")
+
+
+class JWTAuthentication(BaseAuthentication):
+    def authenticate(self, request):
+        token = request.headers.get("Jwt")
+        if not token:
+            return None
+        try:
+            decoded = jwt.decode(token, settings.SECRET_KEY, algorithms=["HS256"])
+            pk = decoded.get("pk")
+            user = User.objects.get(pk=pk)
+        except jwt.InvalidSignatureError:
+            raise AuthenticationFailed
+        except User.DoesNotExist:
+            raise NotFound
+        return user, None
