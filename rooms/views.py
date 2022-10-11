@@ -5,7 +5,11 @@ from django.utils import timezone
 from rest_framework.permissions import IsAuthenticatedOrReadOnly
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework.status import HTTP_404_NOT_FOUND, HTTP_204_NO_CONTENT
+from rest_framework.status import (
+    HTTP_404_NOT_FOUND,
+    HTTP_204_NO_CONTENT,
+    HTTP_400_BAD_REQUEST,
+)
 from rest_framework.exceptions import (
     NotFound,
     NotAuthenticated,
@@ -34,7 +38,7 @@ class Amenities(APIView):
             amenity = serializer.save()
             return Response(AmenitySerializer(amenity).data)
         else:
-            return Response(serializer.errors, status=HTTP_404_NOT_FOUND)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
 class AmenityDetail(APIView):
@@ -56,7 +60,7 @@ class AmenityDetail(APIView):
             updated_amenity = serializer.save()
             return Response(AmenitySerializer(updated_amenity).data)
         else:
-            return Response(serializer.errors, status=HTTP_404_NOT_FOUND)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
     def delete(self, request, pk):
         amenity = self.get_object(pk)
@@ -99,7 +103,7 @@ class Rooms(APIView):
 
             return Response(RoomDetailSerializer(room).data)
         else:
-            return Response(serializer.errors, status=HTTP_404_NOT_FOUND)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
 class RoomDetail(APIView):
@@ -191,7 +195,7 @@ class RoomReviews(APIView):
             serializer = ReviewSerializer(review)
             return Response(serializer.data)
         else:
-            return Response(serializer.errors, status=HTTP_404_NOT_FOUND)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
 class RoomPhotos(APIView):
@@ -216,7 +220,7 @@ class RoomPhotos(APIView):
             serializer = PhotoSerializer(photo)
             return Response(serializer.data)
         else:
-            return Response(serializer.errors, status=HTTP_404_NOT_FOUND)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
 
 class RoomBookings(APIView):
@@ -246,4 +250,4 @@ class RoomBookings(APIView):
             serializer = CreateRoomBookingSerializer(booking)
             return Response(serializer.data)
         else:
-            return Response(serializer.errors, status=HTTP_404_NOT_FOUND)
+            return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
