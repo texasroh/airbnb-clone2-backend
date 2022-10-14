@@ -87,7 +87,9 @@ class LogIn(APIView):
 
         user = authenticate(request, username=username, password=password)
         if not user:
-            return Response({"error": "wrong password"})
+            return Response(
+                {"error": "wrong password"}, status=status.HTTP_400_BAD_REQUEST
+            )
 
         login(request, user)
         return Response({"ok": "Welcome!"})
