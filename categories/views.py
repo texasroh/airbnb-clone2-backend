@@ -10,7 +10,9 @@ from .serializers import CategorySerializer
 
 class CategoryViewSet(ModelViewSet):
     serializer_class = CategorySerializer
-    queryset = models.Category.objects.all()
+    queryset = models.Category.objects.filter(
+        kind=models.Category.CategoryKindChoices.ROOMS
+    )
 
 
 # class Categories(APIView):

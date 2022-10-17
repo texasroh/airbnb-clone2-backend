@@ -81,7 +81,9 @@ class Rooms(APIView):
     def post(self, request):
         # if request.user.is_anonymous:
         #     raise NotAuthenticated
-        serializer = RoomDetailSerializer(data=request.data)
+        serializer = RoomDetailSerializer(
+            data=request.data, context={"request": request}
+        )
         if serializer.is_valid():
             category_pk = request.data.get("category")
             if not category_pk:
@@ -101,7 +103,9 @@ class Rooms(APIView):
             except Amenity.DoesNotExist:
                 raise ParseError("Amenities not found")
 
-            return Response(RoomDetailSerializer(room).data)
+            return Response(
+                RoomDetailSerializer(room, context={"request": request}).data
+            )
         else:
             return Response(serializer.errors, status=HTTP_400_BAD_REQUEST)
 
